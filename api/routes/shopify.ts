@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { getSearch } from '../controllers/shopify';
+import { getSearch, ragSearch } from '../controllers/shopify';
 
 const routesShopify = Router();
 
-routesShopify.get('/', getSearch);
+routesShopify.get('/search', getSearch);
+routesShopify.get('/rag', ragSearch);
 
 export { routesShopify };
