@@ -15,7 +15,7 @@ const searchSchema = z.object({
 const ragSchema = z.object({
     question: z.string().min(3),
     collection: z.string().min(3),
-    prompt: z.string().min(3),
+    prompt: z.string().optional(),
 });
 
 
@@ -36,9 +36,19 @@ export const getSearch = async (req: Request, res: Response, next: NextFunction)
 
 export const ragSearch = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { question, collection, prompt } = ragSchema.parse(req.query);
+        const PROMPT_DEFAULT = `Utiliza los siguientes elementos de contexto para responder a la pregunta del final.
+        Si no sabes la respuesta, di simplemente que no la sabes, no intentes inventarte una respuesta.
+        Utiliza tres frases como máximo y procura que la respuesta sea lo más concisa posible.
+        Di siempre «gracias por preguntar» al final de la respuesta.
+        {context}
+
+        Pregunta: {question}
+        Respuesta útil:`
+
+        const { question, collection, prompt } = ragSchema.parse(req.body);
         const vectorStore = await getInstance(collection)
-        const template = prompt;
+        console.log('>>>>>>>>>', vectorStore)
+        const template = prompt ?? PROMPT_DEFAULT;
 
         const llm = new ChatOpenAI({ model: "gpt-3.5-turbo", temperature: 0 });
         const customRagPrompt = PromptTemplate.fromTemplate(template);
@@ -59,7 +69,16 @@ export const ragSearch = async (req: Request, res: Response, next: NextFunction)
             context,
         });
 
-        const response = { text }
+        const response = {
+            messages: [
+                {
+                    type: 'to_user',
+                    content: text
+                }
+            ],
+            question,
+            context
+        }
 
         res.send(response);
     } catch (error) {

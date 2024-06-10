@@ -4,6 +4,6 @@ import { getSearch, ragSearch } from '../controllers/shopify';
 const routesShopify = Router();
 
 routesShopify.get('/search', getSearch);
-routesShopify.get('/rag', ragSearch);
+routesShopify.post('/rag', ragSearch);
 
 export { routesShopify };
